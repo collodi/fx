@@ -1,6 +1,5 @@
 statically typed
 whitespace sensitive
-NOT pure
 
 Types
 ---

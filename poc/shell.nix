@@ -7,7 +7,7 @@ let
     );
     
 in stdenv.mkDerivation rec {
-  name = "rt-learn";
+  name = "fx-lang";
 
   buildInputs = [ python ];
 

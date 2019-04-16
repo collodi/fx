@@ -43,25 +43,16 @@ Function definition syntax
 ---
 
 1. function name
-1. type signature
-1. call pattern
-1. arguments
-1. operations
+1. argument pattern matching
+1. function body
+1. types (?)
 
-Function definition using pattern matching
----
+`fx` (name)
+	[ (pattern) body
+	[ (pattern) body
+	...
 
-this (hopefully) lets the user to define the function is called
-along with the operations in the function
-
-ideas?
-
-use pattern matching to name variables in the input tuple first
-and the next part can give the pattern a function is called
-
-> ex.
->     fn + (:x, :y)	naming inputs (fn is a keyword for function definition)
->     x + y		define call pattern
+Then, defining a custom call pattern is done with pattern translation.
 
 REPL
 ---
@@ -69,11 +60,35 @@ REPL
 - [x] integer
 - [x] float
 - [x] tuple
+- [ ] pattern
+- [ ] function definition
+- [ ] 
+
+Pattern definition
+---
+
+Any expression can be considered a pattern.
+
+2 types of pattern matching
+1. matching & assignment
+1. pattern translation
+
+**matching & assignment**
+> using pattern variables
+> ex.
+>     :x
+>     :x > 5
+>     (:x, :y)
+
+**pattern translation**
+> using `pn` keyword
+> must include at least 1 unique identifier
+>
+> ex.
+>     `pn` :x + :y = (x, y) ] +
 
 Pattern matching + variable assignment
 ---
-
-For matching and assigning, use `:<variable>`.
 
 > \_ matches a value and discards it (no assignment)
 > ... matches any number of values in a tuple and discards it (no assignment)

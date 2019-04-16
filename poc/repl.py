@@ -2,7 +2,7 @@ from parser import parse
 
 def main():
 	while True:
-		expr = input('fx repl > ')
+		expr = input('fx > ')
 		val = parse(expr).eval()
 		print(val)
 
