@@ -66,11 +66,13 @@ REPL
 - [x] pnvar matching
 - [x] resolve variable
 - [x] tuple matching
-- [ ] ctx pass down in tuple matching
-- [ ] basic types
-- [ ] type definition
-- [ ] type matching
-- [ ] 
+- [x] `_` in pattern matching
+- [x] `...` in pattern matching
+- [ ] `..:` in pattern matching
+- [ ] pattern translation
+- [ ] matching w/ pnvar, condition
+- [ ] ctx passing in tuple matching
+- [ ]
 
 Pattern definition
 ---

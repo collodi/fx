@@ -10,7 +10,10 @@ lg.add(',', r',')
 lg.add(':', r':')
 lg.add('[', r'\[')
 lg.add(']', r'\]')
+
 lg.add('fx', r'fx')
+lg.add('_', r'_')
+lg.add('...', r'\.\.\.')
 
 name_excludes = r'[^(),:[\] ]'
 lg.add('NAME', name_excludes + r'+')
@@ -63,19 +66,31 @@ class Tuple:
 
 	def match_pn(self, x):
 		if len(self.v) == 1:
-			if type(x) is tuple and len(x) != 1:
+			if type(x) is not tuple or len(x) > 1:
 				return self.v[0].match_pn(x)
-
-		if len(self.v) != len(x):
+		elif type(x) is not tuple:
 			return None
 
+		j = 0
 		ctx = {}
-		for v, a in zip(self.v, x):
-			subctx = v.match_pn(a)
-			if subctx is None: # match failed
+		for i, v in enumerate(self.v):
+			if type(v.eval()) is PnVarargEmpty:
+				rem = len(self.v) - (i + 1)
+				if i + rem > len(x): # (:x, ..., :y) should not match (1) to be { x = 1, y = 1 }
+					return None
+
+				j = len(x) - rem
+				continue
+
+			if j >= len(x):
+				return None
+
+			subctx = v.match_pn(x[j])
+			if subctx is None:
 				return None
 
 			ctx = { **ctx, **subctx }
+			j += 1
 
 		return ctx
 
@@ -88,6 +103,20 @@ class PnVar:
 
 	def match_pn(self, x):
 		return { self.name: x }
+
+class PnEmpty:
+	def eval(self, ctx):
+		return self
+
+	def match_pn(self, x):
+		return {}
+
+class PnVarargEmpty:
+	def eval(self, ctx):
+		return self
+
+	def match_pn(self, x):
+		return {}
 
 class Function:
 	def __init__(self, name, branches):
@@ -123,11 +152,13 @@ class FuncCall:
 		return func_table[self.fn](arg)
 
 func_table = {}
-pg = ParserGenerator(['FLOAT', 'INT', '(', ')', ',', ':', '[', ']', 'fx', 'NAME'])
+pg = ParserGenerator(['FLOAT', 'INT', '(', ')', '_', '...', ',', ':', '[', ']', 'fx', 'NAME'])
 
 @pg.production('expr : func')
 @pg.production('expr : tuple')
 @pg.production('expr : pnvar')
+@pg.production('expr : pn-empty')
+@pg.production('expr : pn-vararg-empty')
 @pg.production('expr : number')
 @pg.production('expr : func-call')
 @pg.production('expr : name')
@@ -168,6 +199,14 @@ def number(p):
 @pg.production('pnvar : : NAME')
 def pnvar(p):
 	return PnVar(p[1].getstr())
+
+@pg.production('pn-empty : _')
+def pn_empty(p):
+	return PnEmpty()
+
+@pg.production('pn-vararg-empty : ...')
+def pn_vararg_empty(p):
+	return PnVarargEmpty()
 
 @pg.production('func : fx NAME func-body')
 def func(p):

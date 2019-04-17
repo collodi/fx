@@ -17,3 +17,20 @@ pnvar = : NAME
 
 func = fx NAME func-body
 func-body = [ tuple expr func-body | [ tuple expr
+
+...
+
+
+
+
+Possible variants in matching vararg (...):
+(..., expr)
+(expr, ...)
+(expr, ..., expr)
+(expr, expr, ..., expr)
+(expr, ..., expr, expr)
+(expr, expr, ..., expr, expr)
+and so on
+
+We must have vararg in the middle and fixed number of expressions
+to either side.
