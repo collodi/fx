@@ -68,11 +68,18 @@ REPL
 - [x] tuple matching
 - [x] `_` in pattern matching
 - [x] `...` in pattern matching
-- [ ] `..:` in pattern matching
+- [x] `..:` in pattern matching
+- [x] 0-tuple
 - [ ] pattern translation
-- [ ] matching w/ pnvar, condition
+- [ ] matching w/ pnvar + condition
 - [ ] ctx passing in tuple matching
 - [ ]
+
+thoughts in progress
+
+- [ ] tuple concat (x, ...rest) & (...rest, x)
+- [ ] +, -, \*, /
+- [ ] curring?
 
 Pattern definition
 ---
@@ -99,6 +106,8 @@ which contains a name to expr mapping.
 >
 > ex.
 >     `pn` :x + :y = (x, y) ] +
+
+No recursive definition of pattern translation is allowed.
 
 Pattern matching + variable assignment
 ---

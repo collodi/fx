@@ -7,7 +7,7 @@ def repl(ln):
 		return
 
 	v = parse(ln).eval()
-	if v:
+	if v is not None:
 		print(v)
 
 def repl_from_file(fn):

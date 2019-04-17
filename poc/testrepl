@@ -39,3 +39,11 @@ fx more-sides [ (:x, :y, ..., :a, :b) (b, a, y, x)
 1 ] more-sides
 (1, 2) ] more-sides
 (1, 2, 3) ] more-sides
+
+fx tail [ (_, ..:rest) rest
+
+(1, 2) ] tail
+(1, 2, 3) ] tail
+(1, 2, 3, 4) ] tail
+
+(1) ] tail

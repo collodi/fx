@@ -14,8 +14,9 @@ lg.add(']', r'\]')
 lg.add('fx', r'fx')
 lg.add('_', r'_')
 lg.add('...', r'\.\.\.')
+lg.add('..:', r'\.\.:')
 
-name_excludes = r'[^(),:[\] ]'
+name_excludes = r'[^(),:[\]. ]'
 lg.add('NAME', name_excludes + r'+')
 
 lg.ignore(r'\s+')
@@ -59,7 +60,7 @@ class Tuple:
 		self.v.insert(0, v)
 
 	def append(self, v):
-		self.v.append(0, v)
+		self.v.append(v)
 
 	def eval(self, ctx):
 		return tuple(v.eval(ctx) for v in self.v)
@@ -74,14 +75,18 @@ class Tuple:
 		j = 0
 		ctx = {}
 		for i, v in enumerate(self.v):
-			if type(v.eval()) is PnVarargEmpty:
+			if type(v.eval()) is PnVararg:
+				# (:x, ..., :y) should not match (1) to be { x = 1, y = 1 }
 				rem = len(self.v) - (i + 1)
-				if i + rem > len(x): # (:x, ..., :y) should not match (1) to be { x = 1, y = 1 }
+				if i + rem > len(x): 
 					return None
 
 				j = len(x) - rem
+				ctx = { **ctx, **v.match_pn(x[i:j]) }
 				continue
 
+			# more patterns than values
+			# must be after PnVararg check since PnVararg can match 0-tuple
 			if j >= len(x):
 				return None
 
@@ -111,12 +116,16 @@ class PnEmpty:
 	def match_pn(self, x):
 		return {}
 
-class PnVarargEmpty:
+class PnVararg:
+	def __init__(self, name=None):
+		self.name = name
+		self.empty = (name is None)
+
 	def eval(self, ctx):
 		return self
 
 	def match_pn(self, x):
-		return {}
+		return {} if self.empty else { self.name: x }
 
 class Function:
 	def __init__(self, name, branches):
@@ -152,13 +161,13 @@ class FuncCall:
 		return func_table[self.fn](arg)
 
 func_table = {}
-pg = ParserGenerator(['FLOAT', 'INT', '(', ')', '_', '...', ',', ':', '[', ']', 'fx', 'NAME'])
+pg = ParserGenerator(['FLOAT', 'INT', '(', ')', '_', '..:', '...', ',', ':', '[', ']', 'fx', 'NAME'])
 
 @pg.production('expr : func')
 @pg.production('expr : tuple')
 @pg.production('expr : pnvar')
 @pg.production('expr : pn-empty')
-@pg.production('expr : pn-vararg-empty')
+@pg.production('expr : pn-vararg')
 @pg.production('expr : number')
 @pg.production('expr : func-call')
 @pg.production('expr : name')
@@ -168,6 +177,10 @@ def expr(p):
 @pg.production('name : NAME')
 def expr_name(p):
 	return Expr(Name(p[0].getstr()))
+
+@pg.production('tuple : ( )')
+def tuple_expr(p):
+	return Tuple()
 
 @pg.production('tuple : ( expr )')
 def tuple_expr(p):
@@ -204,9 +217,13 @@ def pnvar(p):
 def pn_empty(p):
 	return PnEmpty()
 
-@pg.production('pn-vararg-empty : ...')
+@pg.production('pn-vararg : ...')
+@pg.production('pn-vararg : ..: NAME')
 def pn_vararg_empty(p):
-	return PnVarargEmpty()
+	if p[0].gettokentype() == '...':
+		return PnVararg()
+	else:
+		return PnVararg(p[1].getstr())
 
 @pg.production('func : fx NAME func-body')
 def func(p):
