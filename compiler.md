@@ -60,7 +60,7 @@ REPL
 - [x] integer
 - [x] float
 - [x] tuple
-- [ ] pattern
+- [ ] pnvar
 - [ ] function definition
 - [ ] 
 
@@ -79,6 +79,9 @@ Any expression can be considered a pattern.
 >     :x
 >     :x > 5
 >     (:x, :y)
+
+A pattern matching with pnvars creates a context
+which contains a name to expr mapping.
 
 **pattern translation**
 > using `pn` keyword
