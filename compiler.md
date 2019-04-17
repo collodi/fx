@@ -60,8 +60,16 @@ REPL
 - [x] integer
 - [x] float
 - [x] tuple
-- [ ] pnvar
-- [ ] function definition
+- [x] function definition
+- [x] function call
+- [x] number literal matching
+- [x] pnvar matching
+- [x] resolve variable
+- [x] tuple matching
+- [ ] ctx pass down in tuple matching
+- [ ] basic types
+- [ ] type definition
+- [ ] type matching
 - [ ] 
 
 Pattern definition

@@ -17,11 +17,32 @@ lg.add('NAME', name_excludes + r'+')
 
 lg.ignore(r'\s+')
 
-class Number:
+class Expr:
 	def __init__(self, v):
 		self.v = v
 
 	def eval(self, ctx=None):
+		return self.v.eval(ctx)
+
+	def match_pn(self, x):
+		return self.v.match_pn(x)
+
+class Name:
+	def __init__(self, v):
+		self.v = v
+
+	def eval(self, ctx):
+		if self.v in ctx:
+			return ctx[self.v]
+
+		print(f'{self.v} is undefined')
+		return # TODO error
+
+class Number:
+	def __init__(self, v):
+		self.v = v
+
+	def eval(self, ctx):
 		return self.v
 
 	def match_pn(self, x):
@@ -37,17 +58,20 @@ class Tuple:
 	def append(self, v):
 		self.v.append(0, v)
 
-	def eval(self, ctx=None):
-		return [v.eval(ctx) for v in self.v]
+	def eval(self, ctx):
+		return tuple(v.eval(ctx) for v in self.v)
 
 	def match_pn(self, x):
-		# arg is not tuple
-		if type(x) is not Tuple:
-			return None if len(self.v) > 1 else self.v[0].match_pn(x)
+		if len(self.v) == 1:
+			if type(x) is tuple and len(x) != 1:
+				return self.v[0].match_pn(x)
+
+		if len(self.v) != len(x):
+			return None
 
 		ctx = {}
-		for v, a in zip(self.v, x.v):
-			subctx = v.match_pn(a, ctx)
+		for v, a in zip(self.v, x):
+			subctx = v.match_pn(a)
 			if subctx is None: # match failed
 				return None
 
@@ -59,13 +83,16 @@ class PnVar:
 	def __init__(self, name):
 		self.name = name
 
-	def eval(self, ctx=None):
+	def eval(self, ctx):
 		return self
 
+	def match_pn(self, x):
+		return { self.name: x }
+
 class Function:
-	def __init__(self, name, body):
+	def __init__(self, name, branches):
 		self.name = name
-		self.branches = body.branches
+		self.branches = branches
 
 	def __call__(self, arg):
 		for brch in self.branches:
@@ -76,25 +103,18 @@ class Function:
 		print(f'no matching branch in "{self.name}" for input "{arg}"')
 		return # TODO error
 
-	def eval(self):
+	def eval(self, _):
 		return self
 
-class FuncBody:
-	def __init__(self, arg, expr):
-		self.branches = [(arg, expr)]
-
-	def argmatch(self, arg):
-		return True
-
-	def add(self, arg, expr):
-		self.branches.insert(0, (arg, expr))
+	def match_pn(self, x):
+		return {} if self is x else None
 
 class FuncCall:
 	def __init__(self, fn, arg):
 		self.fn = fn
 		self.arg = arg
 
-	def eval(self, ctx=None):
+	def eval(self, ctx):
 		if self.fn not in func_table:
 			print(f'function "{self.fn}" is not defined')
 			return # TODO error
@@ -110,8 +130,13 @@ pg = ParserGenerator(['FLOAT', 'INT', '(', ')', ',', ':', '[', ']', 'fx', 'NAME'
 @pg.production('expr : pnvar')
 @pg.production('expr : number')
 @pg.production('expr : func-call')
+@pg.production('expr : name')
 def expr(p):
-	return p[0]
+	return Expr(p[0])
+
+@pg.production('name : NAME')
+def expr_name(p):
+	return Expr(Name(p[0].getstr()))
 
 @pg.production('tuple : ( expr )')
 def tuple_expr(p):
@@ -152,12 +177,12 @@ def func(p):
 
 @pg.production('func-body : [ tuple expr func-body')
 def func_body_more(p):
-	p[3].add(p[1], p[2])
+	p[3].insert(0, (p[1], p[2]))
 	return p[3]
 
 @pg.production('func-body : [ tuple expr')
 def func_body(p):
-	return FuncBody(p[1], p[2])
+	return [(p[1], p[2])]
 
 @pg.production('func-call : expr ] NAME')
 def func_call(p):
