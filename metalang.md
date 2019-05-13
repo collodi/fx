@@ -18,4 +18,18 @@ All possible values of a boolean are 0 and 1.
 We have defined the smallest unit and possible values.
 
 Then, we go on to define some basic operations on boolean.
-`boolean and boolean`
+
+The boolean `AND` is defined like this:
+```
+fx AND
+	[ (0, 0) 0
+	[ (0, 1) 0
+	[ (1, 0) 0
+	[ (1, 1) 1
+```
+
+Along with definitions of other boolean operations, our boolean algebra discipline is complete.
+
+* For now, let's assume all argument types in operations match the defined unit in the discipline.
+* This may have to change when we have to define operations on more than 1 unit.
+* For example, a multiplication between a vector and a scalar.
